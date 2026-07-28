@@ -79,7 +79,7 @@ def login_user(request):
             request.session['citizen_id'] = user.id
             return redirect('home')
         except Citizen.DoesNotExist:
-            return render(request, 'login.html', {'error': 'Invalid Name or Phone'})
+            return render(request, 'index.html', {'error': 'Invalid Name or Phone'})
     return render(request, 'index.html')
 
 # =======================
