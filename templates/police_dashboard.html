@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Emergency Dashboard</title>
+    <style>
+        body {
+            background-color: #f2f4f7;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 950px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            color: #7f8c8d;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px;
+            border-bottom: 2px solid #f2f4f7;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f2f4f7;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .crime-text { font-weight: bold; color: #2c3e50; }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            background: #ebedef;
+            color: #2c3e50;
+            text-transform: uppercase;
+        }
+
+        .btn-group { display: flex; gap: 8px; }
+        button, .location-link {
+            all: unset;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            transition: transform 0.1s, filter 0.2s;
+            display: inline-block;
+        }
+        .btn-accept { background: #2c3e50; color: white; }
+        .btn-resolve { background: #27ae60; color: white; }
+        .location-link {
+            background: #ffffff;
+            border: 1px solid #dcdde1;
+            color: #7f8c8d;
+            text-decoration: none;
+        }
+        button:active, .location-link:active { transform: scale(0.95); }
+        button:hover, .location-link:hover { filter: brightness(1.2); }
+
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 15px; }
+            td, th { padding: 10px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <h2>👮 Police Emergency Dashboard</h2>
+
+    <table id="emergencyTable">
+        <thead>
+            <tr>
+                <th>Citizen</th>
+                <th>Emergency</th>
+                <th>Status</th>
+                <th>Action</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in emergencies %}
+            <tr>
+                <td>{{ e.citizen.name }}</td>
+                <td class="crime-text">{{ e.get_emergency_type_display }}</td>
+                <td><span class="status-badge">{{ e.status }}</span></td>
+                <td>
+                    <div class="btn-group">
+                        {% if e.status|lower == "pending" %}
+                        <a href="{% url 'accept_emergency' e.id 'police' %}"><button class="btn-accept">Accept</button></a>
+                        {% endif %}
+                        <a href="{% url 'resolve_emergency' e.id %}"><button class="btn-resolve">Resolve</button></a>
+                    </div>
+                </td>
+                <td>
+                    <a target="_blank" href="https://www.google.com/maps?q={{ e.latitude }},{{ e.longitude }}" class="location-link">
+                        📍 View Location
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">No active emergencies reported.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const csrftoken = '{{ csrf_token }}';
+
+    // Handle Accept and Resolve button clicks
+    document.addEventListener("click", function(e) {
+        // Accept button click
+        if (e.target.classList.contains("btn-accept")) {
+            e.preventDefault();
+            fetch(e.target.parentElement.href, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken }
+            })
+            .then(res => {
+                if(res.ok) e.target.style.display = "none";
+                else alert("Failed to accept emergency.");
+            })
+            .catch(err => console.error(err));
+        }
+
+        // Resolve button click
+        if (e.target.classList.contains("btn-resolve")) {
+            e.preventDefault();
+            const row = e.target.closest("tr");
+            fetch(e.target.parentElement.href, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrftoken }
+            })
+            .then(res => {
+                if(res.ok) row.remove();
+                else alert("Failed to resolve emergency.");
+            })
+            .catch(err => console.error(err));
+        }
+    });
+
+    // Live update function
+    function loadEmergencies() {
+        fetch("/emergency-live/")
+            .then(res => res.json())
+            .then(data => {
+                const tableBody = document.querySelector("#emergencyTable tbody");
+                if(!data.emergencies || data.emergencies.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active emergencies reported.</td></tr>';
+                    return;
+                }
+
+                let rows = "";
+                data.emergencies.forEach(e => {
+                    if(e.type.toLowerCase() === "crime") {
+                        rows += `
+                        <tr>
+                            <td>${e.citizen}</td>
+                            <td class="crime-text">${e.type}</td>
+                            <td><span class="status-badge">${e.status}</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    ${e.status.toLowerCase() === "pending" ? `<a href="/accept-emergency/${e.id}/police/"><button class="btn-accept">Accept</button></a>` : ""}
+                                    <a href="/resolve-emergency/${e.id}/"><button class="btn-resolve">Resolve</button></a>
+                                </div>
+                            </td>
+                            <td>
+                                <a target="_blank" href="https://www.google.com/maps?q=${e.lat},${e.lng}" class="location-link">📍 View Location</a>
+                            </td>
+                        </tr>
+                        `;
+                    }
+                });
+
+                tableBody.innerHTML = rows || '<tr><td colspan="5" style="text-align:center;">No active emergencies reported.</td></tr>';
+            })
+            .catch(err => console.error("Error fetching emergencies:", err));
+    }
+
+    setInterval(loadEmergencies, 3000);
+</script>
+
+</body>
+</html>

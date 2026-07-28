@@ -1,0 +1,239 @@
+  <style>
+    /* General Page Styling */
+    body {
+      background-color: #f2f4f7;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* Main Dashboard Card */
+    .dashboard-container {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    h3 {
+      font-size: 16px;
+      color: #7f8c8d;
+      margin-bottom: 25px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* The Emergency Grid */
+    .emergency-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* Two columns */
+      gap: 15px;
+    }
+
+    /* Emergency Buttons Base Styling */
+    .emergency-btn {
+      border: none;
+      border-radius: 15px;
+      padding: 20px 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition:
+        transform 0.1s ease,
+        filter 0.2s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .emergency-btn span {
+      font-size: 30px; /* Makes the emoji larger */
+    }
+
+    /* Click Effect: Button feels like it's being pressed */
+    .emergency-btn:active {
+      transform: scale(0.95);
+      filter: brightness(0.9);
+    }
+
+    /* Hover Effect for Desktop users */
+    .emergency-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Logout Link Styling */
+    .logout-link {
+      display: inline-block;
+      color: #e74c3c;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+
+    .logout-link:hover {
+      opacity: 0.7;
+      text-decoration: underline;
+    }
+
+    /* Responsive Tweak for very small screens */
+    @media (max-width: 350px) {
+      .emergency-grid {
+        grid-template-columns: 1fr; /* Single column on tiny phones */
+      }
+      .emergency-btn[style*="grid-column: span 2"] {
+        grid-column: span 1 !important;
+      }
+    }
+  </style>
+  <div class="dashboard-container">
+    <h1>Citizen Dashboard</h1>
+    <h3>Emergency Help</h3>
+
+    <form
+      method="POST"
+      action="{% url 'send_emergency' %}"
+      class="emergency-grid"
+    >
+      {% csrf_token %}
+      <button
+        type="submit"
+        name="emergency_type"
+        value="medical"
+        class="emergency-btn"
+        style="background: #e74c3c"
+      >
+        <span>🚑</span> Medical
+      </button>
+      <button
+        type="submit"
+        name="emergency_type"
+        value="accident"
+        class="emergency-btn"
+        style="background: #f39c12"
+      >
+        <span>🚗</span> Accident
+      </button>
+      <button
+        type="submit"
+        name="emergency_type"
+        value="fire"
+        class="emergency-btn"
+        style="background: #d35400"
+      >
+        <span>🔥</span> Fire
+      </button>
+      <button
+        type="submit"
+        name="emergency_type"
+        value="crime"
+        class="emergency-btn"
+        style="background: #2c3e50"
+      >
+        <span>🚔</span> Crime
+      </button>
+      <button
+        type="submit"
+        name="emergency_type"
+        value="disaster"
+        class="emergency-btn"
+        style="background: #8e44ad; grid-column: span 2"
+      >
+        <span>🌪</span> Natural Disaster
+      </button>
+      <input type="hidden" name="latitude" id="latitude" />
+      <input type="hidden" name="longitude" id="longitude" />
+
+      <script>
+        navigator.geolocation.getCurrentPosition(function (position) {
+          document.getElementById("latitude").value = position.coords.latitude;
+          document.getElementById("longitude").value = position.coords.longitude;
+        });
+      </script>
+    </form>
+
+    <div style="margin-top: 30px">
+      <a href="/profile/"
+        ><button
+          style="
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+          "
+        >
+          👤 Edit Profile
+        </button></a
+      >
+      <br /><br />
+      <a href="/logout/" class="logout-link">Logout</a>
+    </div>
+  </div>
+  <script>
+
+  function loadEmergencies(){
+
+  fetch("/emergency-live/")
+  .then(response => response.json())
+  .then(data => {
+
+  let table = document.querySelector("#emergencyTable tbody");
+  table.innerHTML="";
+
+  data.emergencies.forEach(function(e){
+
+  let row = `
+  <tr>
+
+  <td>${e.citizen}</td>
+
+  <td>${e.type}</td>
+
+  <td>${e.status}</td>
+
+  <td>
+
+  <a href="/accept-emergency/${e.id}/hospital/">Accept</a>
+
+  <a href="/resolve-emergency/${e.id}/">Resolve</a>
+
+  <a target="_blank"
+  href="https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lng}">
+  Navigate
+  </a>
+
+  </td>
+
+  </tr>
+  `;
+
+  table.innerHTML += row;
+
+  });
+
+  });
+
+  }
+
+  setInterval(loadEmergencies,3000); 
+  loadEmergencies();
+
+  </script>

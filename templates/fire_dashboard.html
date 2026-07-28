@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fire Emergency Dashboard</title>
+    <style>
+      /* General Layout */
+      body {
+        background-color: #fdf2f2;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .dashboard-container {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(194, 54, 22, 0.15);
+        width: 100%;
+        max-width: 950px;
+        text-align: center;
+        border-top: 8px solid #e67e22;
+      }
+
+      h2 {
+        font-size: 28px;
+        color: #c0392b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      /* Table Styling */
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        margin-top: 15px;
+      }
+
+      th {
+        color: #95a5a6;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        padding: 12px;
+        border-bottom: 2px solid #f1f1f1;
+      }
+
+      td {
+        background: #fff;
+        padding: 15px;
+        border-top: 1px solid #f9f9f9;
+        border-bottom: 1px solid #f9f9f9;
+        color: #2c3e50;
+        font-size: 15px;
+      }
+
+      /* Fire-specific alert style */
+      .fire-alert {
+        font-weight: bold;
+        color: #e67e22;
+        text-transform: uppercase;
+      }
+
+      /* Action Buttons */
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 13px;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+        display: inline-block;
+      }
+
+      .btn-accept {
+        background: #e67e22;
+        color: white;
+      }
+      .btn-resolve {
+        background: #27ae60;
+        color: white;
+      }
+      .btn-nav {
+        background: #ecf0f1;
+        color: #7f8c8d;
+        border: 1px solid #dcdde1;
+      }
+
+      .btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      /* Status Badge */
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: bold;
+        background: #fdf2f2;
+        color: #c0392b;
+        border: 1px solid #f5c6cb;
+      }
+
+      @media (max-width: 768px) {
+        .btn-group {
+          flex-direction: column;
+        }
+        td {
+          padding: 10px 5px;
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <h2>🔥 Fire Emergency Dashboard</h2>
+
+      <table id="emergencyTable">
+        <thead>
+          <tr>
+            <th>Citizen</th>
+            <th>Emergency</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in emergencies %}
+          <tr>
+            <td>{{ e.citizen.name }}</td>
+            <td class="fire-alert">{{ e.get_emergency_type_display }}</td>
+            <td><span class="status-badge">{{ e.status }}</span></td>
+            <td>
+              <div class="btn-group">
+                <a
+                  href="{% url 'accept_emergency' e.id 'fire' %}"
+                  class="btn btn-accept"
+                  >Accept</a
+                >
+                <a
+                  href="{% url 'resolve_emergency' e.id %}"
+                  class="btn btn-resolve"
+                  >Resolve</a
+                >
+                <a
+                  target="_blank"
+                  href="https://www.google.com/maps?q={{ e.latitude }},{{ e.longitude }}"
+                  class="btn btn-nav"
+                  >📍 Navigate</a
+                >
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" style="text-align: center; color: #95a5a6">
+              No active fire alerts.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      // Get CSRF token for Django POST requests
+      const csrftoken = "{{ csrf_token }}";
+
+      // Handle Accept button clicks
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("btn-accept")) {
+          e.preventDefault();
+          fetch(e.target.href, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken },
+          })
+            .then((res) => {
+              if (res.ok) {
+                e.target.style.display = "none";
+              } else {
+                alert("Failed to accept emergency.");
+              }
+            })
+            .catch((err) => console.error(err));
+        }
+
+        // Handle Resolve button clicks
+        if (e.target.classList.contains("btn-resolve")) {
+          e.preventDefault();
+          const row = e.target.closest("tr");
+          fetch(e.target.href, {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken },
+          })
+            .then((res) => {
+              if (res.ok) {
+                row.remove();
+              } else {
+                alert("Failed to resolve emergency.");
+              }
+            })
+            .catch((err) => console.error(err));
+        }
+      });
+
+      // Function to load emergencies via AJAX
+      function loadEmergencies() {
+        fetch("/emergency-live/")
+          .then((res) => res.json())
+          .then((data) => {
+            let tableBody = document.querySelector("#emergencyTable tbody");
+            let newContent = "";
+
+            data.emergencies.forEach((e) => {
+              if (
+                (e.type === "Fire Emergency" ||
+                  e.type === "Natural Disaster") &&
+                e.status !== "Resolved"
+              ) {
+                newContent += `
+                  <tr>
+                    <td>${e.citizen}</td>
+                    <td class="fire-alert">${e.type}</td>
+                    <td><span class="status-badge">${e.status}</span></td>
+                    <td>
+                      <div class="btn-group">
+                        ${e.status === "Pending" ? `<a href="/accept-emergency/${e.id}/fire/" class="btn btn-accept">Accept</a>` : ""}
+                        <a href="/resolve-emergency/${e.id}/" class="btn btn-resolve">Resolve</a>
+                        <a target="_blank" href="https://www.google.com/maps?q=${e.lat},${e.lng}" class="btn btn-nav">📍 Navigate</a>
+                      </div>
+                    </td>
+                  </tr>`;
+              }
+            });
+
+            tableBody.innerHTML =
+              newContent ||
+              '<tr><td colspan="4" style="text-align: center; color: #95a5a6;">No active fire alerts.</td></tr>';
+          })
+          .catch((err) => console.error("Error fetching emergencies:", err));
+      }
+
+      // Refresh every 3 seconds
+      setInterval(loadEmergencies, 3000);
+    </script>
+  </body>
+</html>

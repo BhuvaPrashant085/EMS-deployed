@@ -1,0 +1,101 @@
+/* General Reset & Background */
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Container for Login, Signup, and Profile */
+.auth-card, .dashboard-container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+h1, h2, h3 {
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
+
+/* Input Styling */
+input[type="text"], 
+input[type="email"], 
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px; /* Prevents auto-zoom on iOS */
+}
+
+/* Primary Action Buttons (Signup/Login) */
+button[type="submit"]:not(.emergency-btn) {
+    width: 100%;
+    background-color: #3498db;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button[type="submit"]:hover:not(.emergency-btn) {
+    background-color: #2980b9;
+}
+
+/* Dashboard Specific: Emergency Grid */
+.emergency-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.emergency-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 20px 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.emergency-btn:active {
+    transform: scale(0.95);
+}
+
+.emergency-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Utility Links */
+.nav-links {
+    margin-top: 20px;
+    display: block;
+    color: #7f8c8d;
+    text-decoration: none;
+}
+
+.logout-link {
+    color: #e74c3c;
+    font-weight: bold;
+}

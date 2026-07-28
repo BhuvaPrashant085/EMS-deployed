@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dispatch Command Center</title>
+    <style>
+      /* General Page Styling */
+      body {
+        background-color: #f2f4f7;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 40px 20px;
+      }
+
+      /* Main Dashboard Card */
+      .dashboard-container {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 1000px; /* Wider for all-access view */
+        text-align: center;
+      }
+
+      h2 {
+        font-size: 28px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        color: #95a5a6;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+        display: block;
+      }
+
+      /* Table Styling */
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+      }
+
+      th {
+        color: #7f8c8d;
+        font-size: 12px;
+        text-transform: uppercase;
+        padding: 10px;
+        border: none;
+      }
+
+      td {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-top: 1px solid #edf0f2;
+        border-bottom: 1px solid #edf0f2;
+      }
+
+      /* Row Rounding */
+      td:first-child {
+        border-left: 1px solid #edf0f2;
+        border-radius: 12px 0 0 12px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+      td:last-child {
+        border-right: 1px solid #edf0f2;
+        border-radius: 0 12px 12px 0;
+      }
+
+      /* Status Badges */
+      .status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: capitalize;
+      }
+      .status-pending {
+        background: #ffeaa7;
+        color: #d6a312;
+      }
+      .status-active {
+        background: #55efc4;
+        color: #00b894;
+      }
+
+      /* Action Buttons */
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.1s, filter 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        margin: 2px;
+      }
+
+      .btn:active {
+        transform: scale(0.95);
+      }
+      .btn:hover {
+        filter: brightness(1.1);
+      }
+
+      .btn-hospital {
+        background: #e74c3c;
+      }
+      .btn-fire {
+        background: #e67e22;
+      }
+      .btn-police {
+        background: #2980b9;
+      }
+
+      .btn-map {
+        background: #f1f2f6;
+        color: #57606f;
+        border: 1px solid #dfe4ea;
+      }
+
+      @media (max-width: 768px) {
+        td,
+        th {
+          font-size: 13px;
+          padding: 10px;
+        }
+        .btn {
+          padding: 6px 10px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <h2>🌐 Dispatch Command Center</h2>
+      <span class="subtitle">Live Emergency Response Feed</span>
+
+      <table id="emergencyTable">
+        <thead>
+          <tr>
+            <th>Citizen</th>
+            <th>Emergency</th>
+            <th>Status</th>
+            <th>Dispatch Action</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in emergencies %}
+          <tr>
+            <td>{{ e.citizen.name }}</td>
+            <td><strong>{{ e.get_emergency_type_display }}</strong></td>
+            <td><span class="status status-{{ e.status|lower }}">{{ e.status }}</span></td>
+            <td>
+              <a href="{% url 'accept_emergency' e.id 'hospital' %}" class="btn btn-hospital">Hospital</a>
+              <a href="{% url 'accept_emergency' e.id 'fire' %}" class="btn btn-fire">Fire</a>
+              <a href="{% url 'accept_emergency' e.id 'police' %}" class="btn btn-police">Police</a>
+              <!-- Resolve button removed -->
+            </td>
+            <td>
+              <a target="_blank" href="https://www.google.com/maps?q={{ e.latitude }},{{ e.longitude }}" class="btn btn-map">
+                📍 View Map
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      function loadEmergencies() {
+        fetch("/emergency-live/")
+          .then((response) => response.json())
+          .then((data) => {
+            let table = document.querySelector("#emergencyTable tbody");
+            table.innerHTML = "";
+
+            data.emergencies.forEach(function (e) {
+              let row = `
+              <tr>
+                <td>${e.citizen}</td>
+                <td><strong>${e.type}</strong></td>
+                <td><span class="status status-${e.status.toLowerCase()}">${e.status}</span></td>
+                <td>
+                  <a href="/accept-emergency/${e.id}/hospital/" class="btn btn-hospital">Hospital</a>
+                  <a href="/accept-emergency/${e.id}/fire/" class="btn btn-fire">Fire</a>
+                  <a href="/accept-emergency/${e.id}/police/" class="btn btn-police">Police</a>
+                </td>
+                <td>
+                  <a target="_blank" href="https://www.google.com/maps?q=${e.lat},${e.lng}" class="btn btn-map">
+                    📍 View Map
+                  </a>
+                </td>
+              </tr>`;
+              table.innerHTML += row;
+            });
+          })
+          .catch((error) => console.error("Error fetching emergencies:", error));
+      }
+
+      // Refresh every 3 seconds
+      setInterval(loadEmergencies, 3000);
+      loadEmergencies(); // Initial load
+    </script>
+  </body>
+</html>

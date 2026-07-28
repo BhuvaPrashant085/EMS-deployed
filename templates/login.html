@@ -1,0 +1,83 @@
+<style>
+  /* Centers everything on the screen */
+  body {
+    background-color: #f2f4f7;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center; /* Horizontal center */
+    align-items: center; /* Vertical center */
+    min-height: 100vh; /* Full screen height */
+    margin: 0;
+  }
+
+  /* The Card (Used for Dashboard, Login, and Signup) */
+  .dashboard-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px; /* Slightly slimmer for login/signup */
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  /* Input Styling */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+
+  /* Submit Button */
+  button[type="submit"]:not(.emergency-btn) {
+    width: 100%;
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  button[type="submit"]:hover:not(.emergency-btn) {
+    background: #2980b9;
+  }
+
+  .error-text {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+</style>
+<div class="card-container">
+  <h2>Citizen Login</h2>
+
+  {% if error %}
+  <p class="error-msg">{{ error }}</p>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+    <input type="text" name="name" placeholder="Name" />
+    <input type="text" name="phone" placeholder="Phone" />
+    <button type="submit">Login</button>
+  </form>
+
+  <a href="/signup/" class="nav-link">Need an account? Sign Up</a>
+</div>
