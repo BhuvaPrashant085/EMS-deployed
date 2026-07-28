@@ -80,7 +80,7 @@ def login_user(request):
             return redirect('home')
         except Citizen.DoesNotExist:
             return render(request, 'login.html', {'error': 'Invalid Name or Phone'})
-    return render(request, 'login.html')
+    return render(request, 'index.html')
 
 # =======================
 # LOGOUT
