@@ -1,0 +1,10 @@
+SECRET_KEY=django-insecure-m$=(=p8pr&as0(b9me)w)t4yw+@_3j!yaj^@j=%@ke4yqqi#+r
+
+DEBUG=True
+
+EMAIL_HOST_USER=prashantbhuva@gmail.com
+EMAIL_HOST_PASSWORD=epfsypdvazswdwin
+
+TWILIO_ACCOUNT_SID=AC64d5cc78ef9eac6a3c4a09880792a1cd
+TWILIO_AUTH_TOKEN=c75a75c4f2f508cff0f45c7cd7e0d912
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886

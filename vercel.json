@@ -2,14 +2,25 @@
   "version": 2,
   "builds": [
     {
-      "src": "EMS_PROJECT/wsgi.py",
+      "src": "EMS/wsgi.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "build_files.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "staticfiles"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "EMS_PROJECT/wsgi.py"
+      "dest": "EMS/wsgi.py"
     }
   ]
 }
