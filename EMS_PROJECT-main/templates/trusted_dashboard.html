@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trusted Contact Dashboard</title>
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+      .dashboard-container {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(108, 92, 231, 0.1);
+        width: 100%;
+        max-width: 950px;
+        text-align: center;
+        border-top: 6px solid #6c5ce7;
+      }
+      h2 {
+        font-size: 24px;
+        color: #2d3436;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th {
+        color: #b2bec3;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 15px;
+        border-bottom: 2px solid #f1f2f6;
+      }
+      td {
+        padding: 15px;
+        border-bottom: 1px solid #f1f2f6;
+        font-size: 15px;
+        color: #2d3436;
+      }
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        background: #dfe6e9;
+        color: #636e72;
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        padding: 8px 15px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+        display: inline-block;
+      }
+      .btn-accept {
+        background: #6c5ce7;
+        color: white;
+      }
+      .btn-resolve {
+        background: #00b894;
+        color: white;
+      }
+      .location-link {
+        background: #f1f2f6;
+        color: #0984e3;
+        border: 1px solid #74b9ff;
+        text-decoration: none;
+      }
+      .btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      @media (max-width: 768px) {
+        .btn-group {
+          flex-direction: column;
+        }
+        td,
+        th {
+          padding: 10px;
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <h2>👨‍👩‍👧 Trusted Contact Dashboard</h2>
+      <table id="emergencyTable">
+        <thead>
+          <tr>
+            <th>Citizen</th>
+            <th>Emergency</th>
+            <th>Status</th>
+            <th>Manage</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in emergencies %}
+          <tr>
+            <td><strong>{{ e.citizen.name }}</strong></td>
+            <td>{{ e.get_emergency_type_display }}</td>
+            <td><span class="status-badge">{{ e.status }}</span></td>
+            <td>
+              <div class="btn-group">
+                {% if e.status|lower == "pending" %}
+                <a
+                  href="{% url 'accept_emergency' e.id 'trusted' %}"
+                  class="btn btn-accept"
+                  >Accept</a
+                >
+                {% endif %}
+                <a
+                  href="{% url 'resolve_emergency' e.id %}"
+                  class="btn btn-resolve"
+                  >Resolve</a
+                >
+              </div>
+            </td>
+            <td>
+              <a
+                target="_blank"
+                href="https://www.google.com/maps?q={{ e.latitude }},{{ e.longitude }}"
+                class="btn location-link"
+                >📍 Open Maps</a
+              >
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: #b2bec3">
+              All contacts are currently safe.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      const csrftoken = "{{ csrf_token }}";
+
+      // Accept & Resolve button handler
+      document.addEventListener("click", function(e) {
+  if(e.target.classList.contains("btn-accept")) {
+    e.preventDefault();
+    const url = e.target.closest("a").href; // safer than parentElement
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrftoken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({}) // some views require body even if empty
+    })
+    .then(res => {
+      if(res.ok) {
+        e.target.style.display = "none"; // hide button on success
+      } else {
+        res.text().then(text => alert("Failed to accept emergency: " + text));
+      }
+    })
+    .catch(err => console.error(err));
+  }
+});
+
+      // Live update function
+      function loadEmergencies() {
+        fetch("/emergency-live/")
+          .then((res) => res.json())
+          .then((data) => {
+            const tableBody = document.querySelector("#emergencyTable tbody");
+            if (!data.emergencies || data.emergencies.length === 0) {
+              tableBody.innerHTML =
+                '<tr><td colspan="5" style="text-align:center; color: #b2bec3;">All contacts are currently safe.</td></tr>';
+              return;
+            }
+
+            let html = "";
+            data.emergencies.forEach((e) => {
+              html += `
+              <tr>
+                <td><strong>${e.citizen}</strong></td>
+                <td>${e.type}</td>
+                <td><span class="status-badge">${e.status}</span></td>
+                <td>
+                  <div class="btn-group">
+                    ${e.status.toLowerCase() === "pending" ? `<a href="/accept-emergency/${e.id}/trusted/" class="btn btn-accept">Accept</a>` : ""}
+                    <a href="/resolve-emergency/${e.id}/" class="btn btn-resolve">Resolve</a>
+                  </div>
+                </td>
+                <td>
+                  <a target="_blank" href="https://www.google.com/maps?q=${e.lat},${e.lng}" class="btn location-link">📍 Open Maps</a>
+                </td>
+              </tr>`;
+            });
+            tableBody.innerHTML =
+              html ||
+              '<tr><td colspan="5" style="text-align:center; color: #b2bec3;">All contacts are currently safe.</td></tr>';
+          })
+          .catch((err) => console.error("Update failed:", err));
+      }
+
+      setInterval(loadEmergencies, 3000);
+    </script>
+  </body>
+</html>
