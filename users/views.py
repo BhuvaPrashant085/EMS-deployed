@@ -395,12 +395,15 @@ Location: https://maps.google.com/?q={emergency.latitude},{emergency.longitude}
 from django.http import JsonResponse
 
 def emergency_live_data(request):
+    if 'citizen_id' not in request.session and 'trusted_id' not in request.session:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
     if 'trusted_id' in request.session:
         contact = TrustedContact.objects.get(id=request.session['trusted_id'])
         emergencies = Emergency.objects.filter(citizen=contact.citizen).order_by("-created_at")
     else:
         emergencies = Emergency.objects.all().order_by("-created_at")
-    
+
     data = [{
         "id": e.id,
         "citizen": e.citizen.name,
