@@ -252,7 +252,8 @@ Location: https://maps.google.com/?q={emergency.latitude},{emergency.longitude}
 
 Please reach out immediately.
 """
-    recipients = [citizen.trusted_contact1, citizen.trusted_contact2]
+    recipients = [citizen.trusted_contact1_email, citizen.trusted_contact2_email]
+    recipients = [r for r in recipients if r]  # filter out empty
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
 
 # =======================
