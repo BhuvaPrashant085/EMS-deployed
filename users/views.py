@@ -1,3 +1,6 @@
+
+import os
+
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.conf import settings
@@ -10,7 +13,7 @@ from .models import Citizen, Emergency, Ambulance, EmergencyAssignment, Emergenc
 
 
 ADMIN_EMAIL = "prashantbhuva085@gmail.com"
-
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 
 # =======================
 # HOME PAGE / DASHBOARD
