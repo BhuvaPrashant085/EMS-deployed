@@ -151,13 +151,19 @@ Please reach out immediately.
         recipients.append(citizen.trusted_contact2_email)
     
     if recipients:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            recipients,
-            fail_silently=False
-        )
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                recipients,
+                fail_silently=False,
+            )
+            print("Email sent successfully")
+        except Exception as e:
+            print("Email Error:", e)
+            raise
+     
 
     # -----------------------------
     # --- SEND SMS TO CONTACTS ----
