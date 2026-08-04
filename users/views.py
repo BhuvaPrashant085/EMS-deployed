@@ -168,9 +168,9 @@ Please reach out immediately.
             send_mail(
                 subject,
                 message,
-                settings.DEFAULT_FROM_EMAIL,
+                settings.EMAIL_HOST_USER,
                 recipients,
-                fail_silently=False,
+                fail_silently=True,
             )
             print("Email sent successfully")
         except Exception as e:
