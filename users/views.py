@@ -160,6 +160,8 @@ Please reach out immediately.
     
     if recipients:
         try:
+            print("EMAIL USER:", settings.EMAIL_HOST_USER)
+            print("RECIPIENTS:", recipients)
             send_mail(
                 subject,
                 message,
