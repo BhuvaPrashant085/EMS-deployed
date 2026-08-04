@@ -18,6 +18,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# DATABASE_URL=postgresql://ems_db_7lu1_user:z19R0JqnpnthAw4gVXjHuGtDUzvgsU1y@dpg-d9kr4ie1egvs73865lug-a.oregon-postgres.render.com/ems_db_7lu1
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
