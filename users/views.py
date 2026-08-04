@@ -97,28 +97,36 @@ def send_emergency(request):
     if 'citizen_id' not in request.session:
         return redirect('login')
 
-    citizen = Citizen.objects.get(id=request.session['citizen_id'])
+    try:
+        citizen = Citizen.objects.get(id=request.session['citizen_id'])
 
-    if request.method == "POST":
-        emergency_type = request.POST.get("emergency_type")
-        latitude = request.POST.get("latitude") or 0
-        longitude = request.POST.get("longitude") or 0
+        if request.method == "POST":
+            emergency_type = request.POST.get("emergency_type")
+            latitude = request.POST.get("latitude") or 0
+            longitude = request.POST.get("longitude") or 0
 
-        emergency = Emergency.objects.create(
-            citizen=citizen,
-            emergency_type=emergency_type,
-            latitude=latitude,
-            longitude=longitude,
-            priority="High",
-            status="Pending",
-            approved=False
-        )
-        emergency.save()
+            emergency = Emergency.objects.create(
+                citizen=citizen,
+                emergency_type=emergency_type,
+                latitude=latitude,
+                longitude=longitude,
+                priority="High",
+                status="Pending",
+                approved=False
+            )
 
-        # Send email and SMS to trusted contacts immediately
-        send_trusted_contact_alert(citizen, emergency_type, latitude, longitude)
+            send_trusted_contact_alert(
+                citizen,
+                emergency_type,
+                latitude,
+                longitude
+            )
 
-    return redirect('home')
+        return redirect('home')
+
+    except Exception as e:
+        print("SEND EMERGENCY ERROR:", e)
+        raise
 
 def send_trusted_contact_alert(citizen, emergency_type, latitude, longitude):
     """
