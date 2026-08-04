@@ -129,7 +129,6 @@ def send_emergency(request):
 
     except Exception as e:
         print("SEND EMERGENCY ERROR:", e)
-        raise
 
 def send_trusted_contact_alert(citizen, emergency_type, latitude, longitude):
     """
@@ -175,7 +174,6 @@ Please reach out immediately.
             print("Email sent successfully")
         except Exception as e:
             print("Email Error:", e)
-            raise
      
 
     # -----------------------------
